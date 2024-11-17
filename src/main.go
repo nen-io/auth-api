@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 
-	"example.com/routes"
+	"example.com/src/database"
+	"example.com/src/routes"
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
 )
@@ -13,10 +13,11 @@ import (
 func main() {
 
 	err := godotenv.Load()
-
 	if err != nil {
-		slog.Error("Failed to load .env file")
+		panic("Failed to load .env file")
 	}
+
+	database.Connect()
 
 	port := fmt.Sprintf(":%s", os.Getenv("PORT"))
 
@@ -26,5 +27,4 @@ func main() {
 
 	app.Listen(port)
 
-	fmt.Println("hello world")
 }

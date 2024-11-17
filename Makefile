@@ -1,9 +1,15 @@
 
 run:
-	go run main.go
+	go run .src/main.go
 
 build:
-	go build -o build/api main.go
+	rm -rf ./build/* && go build -o build/api ./src/main.go
 
 dev:
 	air
+
+migrate_db:
+	go run ./src/cmd/migrate_db.go
+
+clear_db:
+	rm -rf db_data/*
