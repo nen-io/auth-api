@@ -1,4 +1,4 @@
-package database
+package services
 
 import (
 	"fmt"
@@ -9,9 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB_Connection *gorm.DB
+var DB *gorm.DB
 
-func Connect() {
+func InitDb() {
 
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASSWORD")
@@ -29,5 +29,5 @@ func Connect() {
 	}
 
 	slog.Info("Connected to database...")
-	DB_Connection = db
+	DB = db
 }

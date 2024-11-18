@@ -6,7 +6,6 @@ import (
 	"net/mail"
 	"time"
 
-	"example.com/src/database"
 	"example.com/src/services"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -53,14 +52,14 @@ func (u *User) GetField(field string) error {
 	}
 
 	if u.ID != "" {
-		result := database.DB_Connection.Model(u).Select(field).Where("id = ?", u.ID).First(&u)
+		result := services.DB.Model(u).Select(field).Where("id = ?", u.ID).First(&u)
 		if result.Error != nil {
 			return result.Error
 		}
 		return nil
 
 	} else {
-		result := database.DB_Connection.Model(u).Select(field).Where("email = ?", u.Email).First(&u)
+		result := services.DB.Model(u).Select(field).Where("email = ?", u.Email).First(&u)
 		if result.Error != nil {
 			return result.Error
 		}
@@ -76,13 +75,13 @@ func (u *User) GetFields(fields []string) error {
 	}
 
 	if u.ID != "" {
-		result := database.DB_Connection.Model(u).Select(fields).Where("id = ?", u.ID).First(&u)
+		result := services.DB.Model(u).Select(fields).Where("id = ?", u.ID).First(&u)
 		if result.Error != nil {
 			return result.Error
 		}
 		return nil
 	} else {
-		result := database.DB_Connection.Model(u).Select(fields).Where("email = ?", u.Email).First(&u)
+		result := services.DB.Model(u).Select(fields).Where("email = ?", u.Email).First(&u)
 		if result.Error != nil {
 			return result.Error
 		}
@@ -97,13 +96,13 @@ func (u *User) Update(field string, value any) error {
 	}
 
 	if u.ID != "" {
-		result := database.DB_Connection.Model(u).Update(field, value).Where("id = ?", u.ID)
+		result := services.DB.Model(u).Update(field, value).Where("id = ?", u.ID)
 		if result.Error != nil {
 			return result.Error
 		}
 		return nil
 	} else {
-		result := database.DB_Connection.Model(u).Update(field, value).Where("email = ?", u.Email)
+		result := services.DB.Model(u).Update(field, value).Where("email = ?", u.Email)
 		if result.Error != nil {
 			return result.Error
 		}
@@ -118,13 +117,13 @@ func (u *User) UpdateFields(fields map[string]any) error {
 	}
 
 	if u.ID != "" {
-		result := database.DB_Connection.Model(u).Updates(fields).Where("id", u.ID)
+		result := services.DB.Model(u).Updates(fields).Where("id", u.ID)
 		if result.Error != nil {
 			return result.Error
 		}
 		return nil
 	} else {
-		result := database.DB_Connection.Model(u).Updates(fields).Where("email", u.Email)
+		result := services.DB.Model(u).Updates(fields).Where("email", u.Email)
 		if result.Error != nil {
 			return result.Error
 		}
@@ -132,11 +131,6 @@ func (u *User) UpdateFields(fields map[string]any) error {
 
 	}
 
-}
-
-func (u *User) SendVerificationEmail() error {
-	// send email
-	return nil
 }
 
 func (u *User) ValidateEmail(email string) error {
@@ -148,7 +142,7 @@ func (u *User) ValidateEmail(email string) error {
 }
 
 func (u *User) EmailExists(email string) bool {
-	if err := database.DB_Connection.First(&User{Email: email}).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := services.DB.First(&User{Email: email}).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
@@ -179,7 +173,7 @@ func (u *User) Validate() error {
 }
 
 func (u *User) Create() error {
-	result := database.DB_Connection.Create(u)
+	result := services.DB.Create(u)
 	if result.Error != nil {
 		return result.Error
 	}
