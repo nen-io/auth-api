@@ -6,6 +6,7 @@ import (
 
 	"example.com/src/database"
 	"example.com/src/routes"
+	"example.com/src/services"
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
 )
@@ -18,6 +19,7 @@ func main() {
 	}
 
 	database.Connect()
+	services.InitEmailClient()
 
 	port := fmt.Sprintf(":%s", os.Getenv("PORT"))
 

@@ -29,13 +29,16 @@ func RegisterUser(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError(err.Error()))
 	}
 
-	db_err := user.Save()
-
-	if db_err != nil {
+	if err := user.Create(); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.MakeError("Something went wrong"))
+
 	}
 
-	slog.Info("User", "FirstName", user.FirstName, "LastName", user.LastName, "Email", user.Email, "Password", user.Password)
+	resp := map[string]string{
+		"status":  "VERIFY_EMAIL",
+		"message": "User created",
+		"id":      user.ID,
+	}
 
-	return c.SendString("Register User")
+	return c.JSON(resp)
 }
