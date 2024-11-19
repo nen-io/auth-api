@@ -164,6 +164,7 @@ func (u *User) Validate() error {
 		return errors.New("Email already in use or something went wrong checking")
 	}
 
+	//TODO: Check password strength
 	if len(u.Password) < 6 { // validate password length
 		return errors.New("Password too short")
 	}

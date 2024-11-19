@@ -12,6 +12,7 @@ import (
 
 func RequestVerify(c fiber.Ctx) error {
 
+	// TODO: use Fiber Bind() to bind the request body to a struct
 	body := c.Request().Body()
 	// Set a new verification code for the user
 	d := json.NewDecoder(strings.NewReader(string(body)))
