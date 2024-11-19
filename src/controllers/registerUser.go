@@ -10,11 +10,8 @@ import (
 )
 
 func RegisterUser(c fiber.Ctx) error {
-	// This function will be used to register a user
-	//
 
 	body := c.Request().Body()
-
 	user := models.User{}
 
 	d := json.NewDecoder(strings.NewReader(string(body)))
