@@ -13,15 +13,16 @@ import (
 )
 
 type User struct {
-	ID                string    `gorm:"type:uuid;primary_key;" json:"id"`
-	Email             string    `gorm:"uniqueIndex;not null" json:"email"`
-	FirstName         string    `json:"firstName"`
-	LastName          string    `json:"lastName"`
-	Password          string    `json:"password"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
-	Verified          bool      `json:"verified"`
-	VerificationToken string    `json:"verificationToken"`
+	ID                 string    `gorm:"type:uuid;primary_key;" json:"id"`
+	Email              string    `gorm:"uniqueIndex;not null" json:"email" validate:"required,email"`
+	FirstName          string    `json:"firstName" validate:"required"`
+	LastName           string    `json:"lastName" validate:"required"`
+	Password           string    `json:"password" validate:"required"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+	Verified           bool      `json:"verified"`
+	VerificationToken  string    `json:"verificationToken"`
+	ResetPasswordToken string    `json:"resetPasswordToken"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
@@ -141,26 +142,28 @@ func (u *User) ValidateEmail(email string) error {
 	return nil
 }
 
-func (u *User) EmailExists(email string) bool {
-	if err := services.DB.First(&User{Email: email}).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-		return false
+func (u *User) EmailExists(email string) (bool, error) {
+	if err := services.DB.First(&User{Email: email}).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+
+		return true, err
+
 	}
 
-	return true
+	return true, nil
 }
 
 func (u *User) Validate() error {
-	if u.FirstName == "" || u.LastName == "" || u.Email == "" || u.Password == "" {
-		return errors.New("Empty fields")
-	}
+	// check if user already exists
+	exists, err := u.EmailExists(u.Email)
 
-	// validate email
-	if err := u.ValidateEmail(u.Email); err != nil {
+	if err != nil {
 		return err
 	}
 
-	// check if user already exists
-	if u.EmailExists(u.Email) {
+	if exists {
 		return errors.New("Email already in use or something went wrong checking")
 	}
 

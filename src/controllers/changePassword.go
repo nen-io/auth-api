@@ -1,25 +1,15 @@
 package controllers
 
 import (
-	"encoding/json"
-	"strings"
-
 	"example.com/src/models"
 	"github.com/gofiber/fiber/v3"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func ChangePassword(c fiber.Ctx) error {
-	// This function will be used to change a user's password
-
-	body := c.Request().Body()
-	// Set a new verification code for the user
-	d := json.NewDecoder(strings.NewReader(string(body)))
-	d.DisallowUnknownFields()
-
 	// Create a struct to hold the request body
-	request := models.ChangePassword{}
-	if err := d.Decode(&request); err != nil {
+	request := new(models.ChangePassword)
+	if err := c.Bind().JSON(request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Invalid request body"))
 	}
 

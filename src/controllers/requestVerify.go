@@ -1,27 +1,18 @@
 package controllers
 
 import (
-	"encoding/json"
-	"strings"
-
 	"example.com/src/models"
 	"example.com/src/services"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
-func RequestVerify(c fiber.Ctx) error {
+func RequestEmailVerificationCode(c fiber.Ctx) error {
 
 	// TODO: use Fiber Bind() to bind the request body to a struct
-	// c.Bind().JSON(&request)
-	// c.Bind().Must().JSON()
-	body := c.Request().Body()
-	// Set a new verification code for the user
-	d := json.NewDecoder(strings.NewReader(string(body)))
-	d.DisallowUnknownFields()
 
-	request := models.RequestEmail{}
-	if err := d.Decode(&request); err != nil {
+	request := new(models.RequestEmail)
+	if err := c.Bind().JSON(request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Invalid request body"))
 	}
 

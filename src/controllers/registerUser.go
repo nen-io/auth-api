@@ -1,9 +1,7 @@
 package controllers
 
 import (
-	"encoding/json"
 	"log/slog"
-	"strings"
 
 	"example.com/src/models"
 	"github.com/gofiber/fiber/v3"
@@ -11,13 +9,8 @@ import (
 
 func RegisterUser(c fiber.Ctx) error {
 
-	body := c.Request().Body()
-	user := models.User{}
-
-	d := json.NewDecoder(strings.NewReader(string(body)))
-	d.DisallowUnknownFields()
-
-	if err := d.Decode(&user); err != nil {
+	user := new(models.User)
+	if err := c.Bind().JSON(user); err != nil {
 		slog.Error("Failed to unmarshal request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Invalid request body"))
 	}

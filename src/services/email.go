@@ -52,3 +52,30 @@ func SendVerficationEmail(email string, token string) error {
 	return nil
 
 }
+
+func SendResetPasswordEmail(email string, token string) error {
+
+	m := mail.NewMsg()
+	if err := m.From(os.Getenv("SMTP_USERNAME")); err != nil {
+		return err
+	}
+	if err := m.To(email); err != nil {
+		return err
+	}
+
+	uiDomain := os.Getenv("UI_DOMAIN")
+
+	b := fmt.Sprintf(`
+	<h1>Reset your password</h1>
+	<p>Click the link below to reset your password</p>
+	<a href='http://%s/reset-password/%s/%s'>Reset Password</a>
+	`, uiDomain, token, email)
+
+	m.Subject("Reset your password")
+	m.SetBodyString(mail.TypeTextHTML, b)
+	if err := client.DialAndSend(m); err != nil {
+		return err
+	}
+	return nil
+
+}

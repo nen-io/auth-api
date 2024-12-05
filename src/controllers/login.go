@@ -1,31 +1,21 @@
 package controllers
 
 import (
-	"encoding/json"
 	"errors"
 	"log/slog"
-	"strings"
 
 	"example.com/src/models"
 	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 func Login(c fiber.Ctx) error {
 
 	body := c.Request().Body()
 
-	loginRequest := LoginRequest{}
+	loginRequest := new(models.LoginRequest)
 
-	d := json.NewDecoder(strings.NewReader(string(body)))
-	d.DisallowUnknownFields()
-
-	if err := d.Decode(&loginRequest); err != nil {
+	if err := c.Bind().JSON(loginRequest); err != nil {
 		slog.Error("login decode body", "error", err, "body", body)
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Invalid login request body"))
 	}
