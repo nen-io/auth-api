@@ -8,8 +8,8 @@ build:
 dev:
 	air
 
-migrate_db:
-	go run ./src/cmd/migrate_db.go
+db:
+	docker compose up -d && go run ./src/cmd/migrate_db.go
 
 clear_db:
 	rm -rf db_data/*
