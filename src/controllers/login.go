@@ -26,7 +26,7 @@ func Login(c fiber.Ctx) error {
 	user := models.User{
 		Email: loginRequest.Email,
 	}
-	userLoginFields := []string{"password", "verified"}
+	userLoginFields := []string{"password", "verified", "id"}
 
 	if err := user.ValidateEmail(loginRequest.Email); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Invalid email"))

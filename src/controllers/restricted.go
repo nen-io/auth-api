@@ -8,7 +8,7 @@ import (
 
 func Restricted(c fiber.Ctx) error {
 
-	slog.Info("Restricted")
+	slog.Info("Restricted", "id", c.Locals("userId"), "email", c.Locals("email"))
 
 	return c.SendString("Restricted\n")
 }

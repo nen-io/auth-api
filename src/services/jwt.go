@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log/slog"
 	"os"
 	"time"
 
@@ -15,6 +16,8 @@ func CreateJWT(username string, id string, tokenType string, duration time.Durat
 	if jwtSecret == "" {
 		return "", errors.New("JWT_SECRET not set")
 	}
+
+	slog.Info(id)
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 		"email": username,
