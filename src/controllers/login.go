@@ -29,7 +29,8 @@ func Login(c fiber.Ctx) error {
 	userLoginFields := []string{"password", "verified", "id"}
 
 	if err := user.ValidateEmail(loginRequest.Email); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Invalid email"))
+		user.Email = ""
+		user.UserName = loginRequest.Email
 	}
 
 	if err := user.GetFields(userLoginFields); errors.Is(err, gorm.ErrRecordNotFound) {

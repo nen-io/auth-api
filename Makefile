@@ -1,6 +1,6 @@
 
 run:
-	go run .src/main.go
+	go run ./src/main.go
 
 build:
 	rm -rf ./build/* && go build -o build/api ./src/main.go

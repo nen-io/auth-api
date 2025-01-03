@@ -27,7 +27,7 @@ func InitEmailClient() {
 	client = mc
 }
 
-func SendVerficationEmail(email string, token string) error {
+func SendVerficationEmail(email string, token string, id string) error {
 	m := mail.NewMsg()
 	if err := m.From(os.Getenv("SMTP_USERNAME")); err != nil {
 		return err
@@ -42,7 +42,7 @@ func SendVerficationEmail(email string, token string) error {
 	<h1>Verify your email address</h1>
 	<p>Click the link below to verify your email address</p>
 	<a href='http://%s/verify/%s/%s'>Verify</a>
-	`, api_port, token, email)
+	`, api_port, token, id)
 
 	m.Subject("Verify your email address")
 	m.SetBodyString(mail.TypeTextHTML, b)

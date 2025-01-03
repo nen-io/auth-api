@@ -19,7 +19,10 @@ func RequestEmailVerificationCode(c fiber.Ctx) error {
 	user := models.User{
 		Email: request.Email,
 	}
-	if err := user.GetField("verified"); err != nil {
+
+	verifyFields := []string{"id", "verified"}
+
+	if err := user.GetFields(verifyFields); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("User not found"))
 	}
 
@@ -33,7 +36,7 @@ func RequestEmailVerificationCode(c fiber.Ctx) error {
 	}
 
 	// Send email to user
-	services.SendVerficationEmail(user.Email, user.VerificationToken)
+	services.SendVerficationEmail(user.Email, user.VerificationToken, user.ID)
 
 	return c.SendString("Request Verify")
 }

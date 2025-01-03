@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -40,6 +41,7 @@ func main() {
 		JSONEncoder:     json.Marshal,
 		JSONDecoder:     json.Unmarshal,
 	})
+	app.Use(cors.New())
 	routes.AddRoutes(app)
 	port := fmt.Sprintf(":%s", os.Getenv("PORT"))
 	app.Listen(port)

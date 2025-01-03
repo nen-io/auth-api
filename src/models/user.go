@@ -60,19 +60,27 @@ func (u *User) GetField(field string) error {
 		}
 		return nil
 
-	} else {
+	} else if u.Email != "" {
 		result := services.DB.Model(u).Select(field).Where("email = ?", u.Email).First(&u)
 		if result.Error != nil {
 			return result.Error
 		}
 		return nil
+	} else {
+
+		result := services.DB.Model(u).Select(field).Where("user_name = ?", u.Email).First(&u)
+		if result.Error != nil {
+			return result.Error
+		}
 	}
+
+	return errors.New("Failed to find user")
 
 }
 
 func (u *User) GetFields(fields []string) error {
 
-	if u.ID == "" && u.Email == "" {
+	if u.ID == "" && u.Email == "" && u.UserName == "" {
 		return errors.New("User has no ID or Email For GetField")
 	}
 
@@ -82,13 +90,20 @@ func (u *User) GetFields(fields []string) error {
 			return result.Error
 		}
 		return nil
-	} else {
+	} else if u.Email != "" {
 		result := services.DB.Model(u).Select(fields).Where("email = ?", u.Email).First(&u)
 		if result.Error != nil {
 			return result.Error
 		}
 		return nil
+	} else {
+		result := services.DB.Model(u).Select(fields).Where("user_name = ?", u.UserName).First(&u)
+		if result.Error != nil {
+			return result.Error
+		}
 	}
+
+	return errors.New("Failed to find user")
 }
 
 func (u *User) Update(field string, value any) error {
@@ -182,7 +197,7 @@ func (u *User) Create() error {
 	if result.Error != nil {
 		return result.Error
 	}
-	if err := services.SendVerficationEmail(u.Email, u.VerificationToken); err != nil {
+	if err := services.SendVerficationEmail(u.Email, u.VerificationToken, u.ID); err != nil {
 		return err
 	}
 	return nil

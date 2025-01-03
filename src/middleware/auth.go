@@ -53,8 +53,6 @@ func Auth(c fiber.Ctx) error {
 
 	customClaims := token.Claims.(jwt.MapClaims)
 
-	fmt.Printf("%v", customClaims)
-
 	// Add the user id to the locals for future use
 	c.Locals("userId", customClaims["id"])
 	c.Locals("email", customClaims["email"])
