@@ -26,7 +26,7 @@ func Login(c fiber.Ctx) error {
 	user := models.User{
 		Email: loginRequest.Email,
 	}
-	userLoginFields := []string{"password", "verified", "id"}
+	userLoginFields := []string{"password", "verified", "id", "user_name", "email"}
 
 	if err := user.ValidateEmail(loginRequest.Email); err != nil {
 		user.Email = ""
@@ -34,7 +34,8 @@ func Login(c fiber.Ctx) error {
 	}
 
 	if err := user.GetFields(userLoginFields); errors.Is(err, gorm.ErrRecordNotFound) {
-		return c.Status(fiber.StatusForbidden).JSON(models.MakeError("User not found"))
+		slog.Error("Failed to find user", user, "user")
+		return c.Status(fiber.StatusForbidden).JSON(models.MakeError("Failed to login"))
 	}
 
 	// check password
@@ -71,6 +72,8 @@ func Login(c fiber.Ctx) error {
 	loginResp := map[string]string{
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
+		"username":     user.UserName,
+		"email":        user.Email,
 		"message":      "User logged in",
 	}
 
