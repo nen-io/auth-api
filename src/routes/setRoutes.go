@@ -13,7 +13,7 @@ func AddRoutes(app *fiber.App) {
 
 	app.Post("/register", controllers.RegisterUser)
 	app.Post("/request-email-verification", controllers.RequestEmailVerificationCode)
-	app.Get("/verify/:token/:id", controllers.Verify)
+	app.Post("/verify/:token/:id", controllers.Verify)
 
 	app.Post("/forgot-password", controllers.ForgotPassword)
 	app.Post("/forgot-password-change", controllers.ForgotPasswordChange)

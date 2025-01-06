@@ -10,6 +10,10 @@ func Verify(c fiber.Ctx) error {
 	token := c.Params("token")
 	id := c.Params("id")
 
+	if token == "" || id == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Invalid request"))
+	}
+
 	// Verify user with token
 	u := models.User{
 		ID: id,
@@ -32,5 +36,10 @@ func Verify(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("failed to verify user"))
 	}
 
-	return c.SendString("Verify User with token: " + token + "\n")
+	resp := map[string]any{
+		"success": true,
+		"message": "User verified",
+	}
+
+	return c.JSON(resp)
 }
