@@ -38,5 +38,10 @@ func RequestEmailVerificationCode(c fiber.Ctx) error {
 	// Send email to user
 	services.SendVerficationEmail(user.Email, user.VerificationToken, user.ID)
 
-	return c.SendString("Request Verify")
+	mapResp := map[string]any{
+		"success": true,
+		"message": "Verification code sent to email",
+	}
+
+	return c.JSON(mapResp)
 }

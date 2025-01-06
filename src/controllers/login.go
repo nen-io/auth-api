@@ -47,6 +47,7 @@ func Login(c fiber.Ctx) error {
 		resp := map[string]string{
 			"status":  "VERIFY EMAIL",
 			"message": "User not verified",
+			"email":   user.Email,
 		}
 
 		return c.JSON(resp)

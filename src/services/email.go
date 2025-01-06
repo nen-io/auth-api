@@ -36,13 +36,13 @@ func SendVerficationEmail(email string, token string, id string) error {
 		return err
 	}
 
-	api_port := os.Getenv("API_DOMAIN")
+	uiDomain := os.Getenv("UI_DOMAIN")
 
 	b := fmt.Sprintf(`
 	<h1>Verify your email address</h1>
 	<p>Click the link below to verify your email address</p>
-	<a href='http://%s/verify/%s/%s'>Verify</a>
-	`, api_port, token, id)
+	<a href='http://%s/verify-email/%s/%s'>Verify</a>
+	`, uiDomain, token, id)
 
 	m.Subject("Verify your email address")
 	m.SetBodyString(mail.TypeTextHTML, b)

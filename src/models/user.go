@@ -158,14 +158,34 @@ func (u *User) ValidateEmail(email string) error {
 	return nil
 }
 
-func (u *User) EmailExists(email string) (bool, error) {
-	if err := services.DB.First(&User{Email: email}).Error; err != nil {
+func (u *User) UsernameExists(username string) (bool, error) {
+
+	user := User{UserName: username}
+	query := services.DB.Select("id").Where("user_name = ?", username).First(&user)
+	if err := query.Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 
 		return true, err
 
+	}
+
+	return true, nil
+}
+
+func (u *User) EmailExists(email string) (bool, error) {
+
+	user := User{Email: email}
+	query := services.DB.Select("id").Where("email = ?", email).First(&user)
+
+	if err := query.Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+
+		return true, err
 	}
 
 	return true, nil
@@ -181,6 +201,14 @@ func (u *User) Validate() error {
 
 	if exists {
 		return errors.New("Email already in use or something went wrong checking")
+	}
+
+	exists, err = u.UsernameExists(u.UserName)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.New("Username already in use")
 	}
 
 	//TODO: Check password strength
