@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
@@ -15,23 +14,18 @@ func Auth(c fiber.Ctx) error {
 
 	// headers := c.GetReqHeaders()
 
-	authHeader := c.Request().Header.Peek("Authorization")
-	if authHeader == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Unauthorized",
-		})
-	}
+	accessToken := c.Request().Header.Cookie("accessToken")
+	// slog.Info("accessToken", accessToken_c)
 
-	accessToken := strings.Split(string(authHeader), " ")[1]
-	slog.Info(accessToken)
-	if accessToken == "" {
+	// authHeader := c.Request().Header.Peek("Authorization")
+	if accessToken == nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Unauthorized",
 		})
 	}
 
 	// Parse the token
-	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(string(accessToken), func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -56,6 +50,7 @@ func Auth(c fiber.Ctx) error {
 	// Add the user id to the locals for future use
 	c.Locals("userId", customClaims["id"])
 	c.Locals("email", customClaims["email"])
+	c.Locals("username", customClaims["username"])
 
 	return c.Next()
 }

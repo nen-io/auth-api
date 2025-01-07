@@ -41,7 +41,7 @@ func SendVerficationEmail(email string, token string, id string) error {
 	b := fmt.Sprintf(`
 	<h1>Verify your email address</h1>
 	<p>Click the link below to verify your email address</p>
-	<a href='http://%s/verify-email/%s/%s'>Verify</a>
+	<a href='%s/verify-email/%s/%s'>Verify</a>
 	`, uiDomain, token, id)
 
 	m.Subject("Verify your email address")
@@ -68,7 +68,7 @@ func SendResetPasswordEmail(email string, token string) error {
 	b := fmt.Sprintf(`
 	<h1>Reset your password</h1>
 	<p>Click the link below to reset your password</p>
-	<a href='http://%s/reset-password/%s/%s'>Reset Password</a>
+	<a href='%s/reset-password/%s/%s'>Reset Password</a>
 	`, uiDomain, token, email)
 
 	m.Subject("Reset your password")

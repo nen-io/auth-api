@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func CreateJWT(username string, id string, tokenType string, duration time.Duration) (string, error) {
+func CreateJWT(username string, email string, id string, tokenType string, duration time.Duration) (string, error) {
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 
@@ -20,11 +20,12 @@ func CreateJWT(username string, id string, tokenType string, duration time.Durat
 	slog.Info(id)
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"email": username,
-		"id":    id,
-		"sub":   tokenType,
-		"exp":   time.Now().Add(time.Minute * 15).Unix(), // Expiration time
-		"iat":   time.Now().Unix(),                       // Issued at
+		"email":    email,
+		"username": username,
+		"id":       id,
+		"sub":      tokenType,
+		"exp":      time.Now().Add(time.Minute * 15).Unix(), // Expiration time
+		"iat":      time.Now().Unix(),                       // Issued at
 	})
 
 	token, err := claims.SignedString([]byte(jwtSecret))

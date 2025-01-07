@@ -54,28 +54,44 @@ func Login(c fiber.Ctx) error {
 	}
 
 	// generate jwt tokens
-	accessToken, err := services.CreateJWT(user.Email, user.ID, "accessToken", time.Minute*15)
+	accessToken, err := services.CreateJWT(user.UserName, user.Email, user.ID, "accessToken", time.Minute*15)
 	if err != nil {
 		slog.Error("Failed to Create AccessToken", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(models.MakeError("Failed to login"))
 	}
 
-	refreshToken, err := services.CreateJWT(user.Email, user.ID, "refreshToken", time.Hour*24*15)
+	refreshToken, err := services.CreateJWT(user.UserName, user.Email, user.ID, "refreshToken", time.Hour*24*15)
 	if err != nil {
 		slog.Error("Failed to Create RefreshToken", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(models.MakeError("Failed to login"))
 
 	}
 
+	accessTokenCookie := &fiber.Cookie{
+		Name:     "accessToken",
+		Value:    accessToken,
+		Expires:  time.Now().Add(time.Minute * 15),
+		HTTPOnly: true,
+	}
+
+	refreshTokenCookie := &fiber.Cookie{
+		Name:     "refreshToken",
+		Value:    refreshToken,
+		Expires:  time.Now().Add(time.Hour * 24 * 15),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(refreshTokenCookie)
+	c.Cookie(accessTokenCookie)
+
 	// create a session
 	services.SessionManager.State[user.ID] = true
 
-	loginResp := map[string]string{
-		"accessToken":  accessToken,
-		"refreshToken": refreshToken,
-		"username":     user.UserName,
-		"email":        user.Email,
-		"message":      "User logged in",
+	loginResp := map[string]any{
+		"success":  true,
+		"username": user.UserName,
+		"email":    user.Email,
+		"message":  "User logged in",
 	}
 
 	return c.JSON(loginResp)
