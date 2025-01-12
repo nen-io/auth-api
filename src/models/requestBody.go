@@ -20,7 +20,7 @@ type ForgotPassword struct {
 }
 
 type ForgotPasswordChange struct {
-	Email       string `json:"email" validate:"required,email"`
+	ID          string `json:"id" validate:"required"`
 	Token       string `json:"token" validate:"required"`
 	NewPassword string `json:"newPassword" validate:"required"`
 }

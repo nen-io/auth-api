@@ -53,7 +53,7 @@ func SendVerficationEmail(email string, token string, id string) error {
 
 }
 
-func SendResetPasswordEmail(email string, token string) error {
+func SendResetPasswordEmail(email string, token string, id string) error {
 
 	m := mail.NewMsg()
 	if err := m.From(os.Getenv("SMTP_USERNAME")); err != nil {
@@ -69,7 +69,7 @@ func SendResetPasswordEmail(email string, token string) error {
 	<h1>Reset your password</h1>
 	<p>Click the link below to reset your password</p>
 	<a href='%s/reset-password/%s/%s'>Reset Password</a>
-	`, uiDomain, token, email)
+	`, uiDomain, token, id)
 
 	m.Subject("Reset your password")
 	m.SetBodyString(mail.TypeTextHTML, b)

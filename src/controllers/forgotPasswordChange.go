@@ -16,10 +16,12 @@ func ForgotPasswordChange(c fiber.Ctx) error {
 	}
 
 	user := models.User{
-		Email: request.Email,
+		ID: request.ID,
 	}
 
-	user.GetField("resetPasswordToken")
+	if err := user.GetField("reset_password_token"); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Something went wrong"))
+	}
 
 	if user.ResetPasswordToken != request.Token {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Invalid reset password token"))
@@ -37,5 +39,10 @@ func ForgotPasswordChange(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.MakeError("Failed to update password"))
 	}
 
-	return c.SendString("Password was changed")
+	resp := map[string]any{
+		"success": true,
+		"message": "Password changed",
+	}
+
+	return c.JSON(resp)
 }
