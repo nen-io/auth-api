@@ -45,7 +45,7 @@ func ForgotPassword(c fiber.Ctx) error {
 
 	// Send email to user
 	if err := services.SendResetPasswordEmail(user.Email, user.ResetPasswordToken, user.ID); err != nil {
-		slog.Error("err", err)
+		slog.Error("failed to send reset password email", "Error:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(models.MakeError("Failed to send reset password email"))
 	}
 

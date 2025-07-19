@@ -9,7 +9,7 @@ dev:
 	air
 
 db:
-	docker compose up -d && go run ./src/cmd/migrate_db.go
+	podman compose up -d && go run ./src/cmd/migrate_db.go
 
 clear_db:
 	rm -rf db_data/*

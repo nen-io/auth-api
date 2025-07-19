@@ -34,7 +34,7 @@ func Login(c fiber.Ctx) error {
 	}
 
 	if err := user.GetFields(userLoginFields); errors.Is(err, gorm.ErrRecordNotFound) {
-		slog.Error("Failed to find user", user, "user")
+		slog.Error("Failed to find user", "User:", user)
 		return c.Status(fiber.StatusForbidden).JSON(models.MakeError("Failed to login"))
 	}
 
