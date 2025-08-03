@@ -34,6 +34,7 @@ func main() {
 	services.InitDb()
 	services.InitEmailClient()
 	services.InitSession()
+	services.InitGoogleOAuth()
 
 	uiDomain := os.Getenv("UI_DOMAIN")
 
@@ -43,6 +44,9 @@ func main() {
 		JSONEncoder:     json.Marshal,
 		JSONDecoder:     json.Unmarshal,
 	})
+
+	services.InitSessionStore(app)
+
 	app.Use(cors.New(cors.Config{
 		AllowCredentials: true,
 		AllowOrigins:     []string{uiDomain, "http://192.168.0.226:3001"},

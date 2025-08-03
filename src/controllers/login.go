@@ -8,6 +8,7 @@ import (
 	"example.com/src/models"
 	"example.com/src/services"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/session"
 	"gorm.io/gorm"
 )
 
@@ -80,6 +81,12 @@ func Login(c fiber.Ctx) error {
 		Expires:  time.Now().Add(time.Hour * 24 * 15),
 		HTTPOnly: true,
 	}
+
+	sess := session.FromContext(c)
+
+	sess.Set("user", user.Email)
+	sess.Set("accessToken", accessToken)
+	sess.Set("provider", "google")
 
 	c.Cookie(refreshTokenCookie)
 	c.Cookie(accessTokenCookie)

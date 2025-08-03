@@ -10,6 +10,8 @@ func AddRoutes(app *fiber.App) {
 	app.Get("/health", controllers.Health)
 
 	app.Post("/login", controllers.Login)
+	app.Get("/auth/:provider/login", controllers.OAuthLogin)
+	app.Get("/auth/:provider/callback", controllers.OAuthCallback)
 	app.Post("/logout", controllers.Logout)
 
 	app.Post("/register", controllers.RegisterUser)
