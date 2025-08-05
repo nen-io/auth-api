@@ -22,8 +22,13 @@ func ForgotPassword(c fiber.Ctx) error {
 
 	exists, err := user.EmailExists(user.Email)
 
-	if err := user.GetField("id"); err != nil {
+	fields := []string{"id", "first_name"}
+	if err := user.GetFields(fields); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Something went wrong"))
+	}
+
+	if user.FirstName == "oauth" {
+		return c.Status(fiber.StatusBadRequest).JSON(models.MakeError("Something went wrong, please contact support"))
 	}
 
 	if err != nil {

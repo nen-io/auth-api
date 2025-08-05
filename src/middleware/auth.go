@@ -16,15 +16,18 @@ func Auth(c fiber.Ctx) error {
 
 	sess := session.FromContext(c)
 	// Check if the provider is google
-	provider := sess.Get("provider").(string)
+	provider := sess.Get("provider")
+	if provider == nil {
+		provider = ""
+	}
+	provider = provider.(string)
+
 	if provider == "google" {
 
-		tokenInfo, err := services.ValidateGoogleTokens(c)
+		_, err := services.ValidateGoogleTokens(c)
 		if err != nil {
 			return err
 		}
-
-		slog.Info("Auth middleware", "provider", provider, "tokenInfo", tokenInfo)
 
 		return c.Next()
 

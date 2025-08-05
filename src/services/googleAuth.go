@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"log/slog"
@@ -23,6 +22,11 @@ var (
 	oidcProv *oidc.Provider
 )
 
+type GoogleClaims struct {
+	Email    string `json:"email"`
+	Verified bool   `json:"email_verified"`
+}
+
 func InitGoogleOAuth() {
 
 	oauthCfg = &oauth2.Config{
@@ -33,8 +37,6 @@ func InitGoogleOAuth() {
 		Scopes:       []string{"openid", "email", "profile"},
 	}
 
-	slog.Info("Initializing Google OAuth....", "clientId", oauthCfg.ClientID, "clientSecret", oauthCfg.ClientSecret)
-
 	var err error
 	oidcProv, err = oidc.NewProvider(context.TODO(), "https://accounts.google.com")
 	if err != nil {
@@ -43,8 +45,6 @@ func InitGoogleOAuth() {
 }
 
 func HandleGoogleAuth(c fiber.Ctx) error {
-
-	slog.Info("google env details", "clientId", os.Getenv("G_OAUTH_CLIENT_ID"), "clientSecret", os.Getenv("G_OAUTH_SECRET_KEY"))
 
 	if c.Params("provider") != "google" {
 		return c.SendStatus(fiber.StatusBadRequest)
@@ -72,60 +72,51 @@ func HandleGoogleAuth(c fiber.Ctx) error {
 		oauth2.SetAuthURLParam("code_challenge_method", "S256"),
 	)
 
-	slog.Info("Redirecting to Google OAuth", "url", url)
-
 	return c.Redirect().To(url)
 }
 
-func HandleGoogleCallback(c fiber.Ctx) error {
+func HandleGoogleCallback(c fiber.Ctx) (GoogleClaims, error) {
 	if c.Params("provider") != "google" {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return GoogleClaims{}, c.SendStatus(fiber.StatusBadRequest)
 	}
 	sess := session.FromContext(c)
 	if c.Query("state") != sess.Get("state") {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return GoogleClaims{}, c.SendStatus(fiber.StatusBadRequest)
 	}
 	verifier := sess.Get("verifier").(string)
 
 	token, err := oauthCfg.Exchange(c.Context(), c.Query("code"),
 		oauth2.SetAuthURLParam("code_verifier", verifier))
 	if err != nil {
-		return err
+		return GoogleClaims{}, err
 	}
 
 	// Set Cookies for access and refresh tokens
 	accessTokenCookie := &fiber.Cookie{
 		Name:     "accessToken",
 		Value:    token.AccessToken,
-		Expires:  time.Now().Add(time.Minute * 15),
-		HTTPOnly: true,
-	}
-	refreshTokenCookie := &fiber.Cookie{
-		Name:     "refreshToken",
-		Value:    token.RefreshToken,
-		Expires:  time.Now().Add(time.Hour * 24 * 15),
+		Expires:  time.Now().Add(time.Minute * 50),
 		HTTPOnly: true,
 	}
 
 	c.Cookie(accessTokenCookie)
-	c.Cookie(refreshTokenCookie)
 
 	// ----- verify ID-token -----
 	rawID, ok := token.Extra("id_token").(string)
 	if !ok {
-		return fiber.NewError(fiber.StatusInternalServerError, "missing id_token")
+		return GoogleClaims{}, fiber.NewError(fiber.StatusInternalServerError, "missing id_token")
 	}
+
+	slog.Info("Verifying Google ID token", "token", token)
+
 	verifierOIDC := oidcProv.Verifier(&oidc.Config{ClientID: oauthCfg.ClientID})
 	idTok, err := verifierOIDC.Verify(c.Context(), rawID)
 	if err != nil {
-		return err
+		return GoogleClaims{}, err
 	}
-	var claims struct {
-		Email    string `json:"email"`
-		Verified bool   `json:"email_verified"`
-	}
+	var claims GoogleClaims
 	if err := idTok.Claims(&claims); err != nil {
-		return err
+		return GoogleClaims{}, err
 	}
 
 	// save session & redirect
@@ -133,14 +124,16 @@ func HandleGoogleCallback(c fiber.Ctx) error {
 	j, err := json.Marshal(&token)
 	if err != nil {
 		slog.Error("Failed to marshal token", "error", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "failed to marshal token")
+		return GoogleClaims{}, fiber.NewError(fiber.StatusInternalServerError, "failed to marshal token")
 	}
 	sess.Set("provider", "google")
 	sess.Set("token", string(j))
+	sess.Set("id_token", rawID)
 
 	c.Locals("email", claims.Email)
 
-	return c.Redirect().To(os.Getenv("UI_DOMAIN") + "/home")
+	return claims, nil
+
 }
 
 type TokenInfo struct {
@@ -154,6 +147,19 @@ func ValidateGoogleTokens(c fiber.Ctx) (*TokenInfo, error) {
 	ctx := c.Context()
 	sess := session.FromContext(c)
 	tokenStr, ok := sess.Get("token").(string)
+
+	if !ok || tokenStr == "" {
+		slog.Error("No valid Google token found in session")
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "no valid Google token found in session")
+	}
+
+	accessToken := c.Request().Header.Cookie("accessToken")
+
+	if string(accessToken) == "" {
+		slog.Error("Missing access or refresh token in request headers")
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "missing access token")
+	}
+
 	if !ok || tokenStr == "" {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, "no valid Google token found in session")
 	}
@@ -164,10 +170,15 @@ func ValidateGoogleTokens(c fiber.Ctx) (*TokenInfo, error) {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, "failed to unmarshal token")
 	}
 
+	if token.AccessToken != string(accessToken) {
+		slog.Error("access token and refresh token do not match session token")
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "access or refresh token does not match the expected value")
+	}
+
 	clientID := os.Getenv("G_OAUTH_CLIENT_ID")
 
-	rawID, ok := token.Extra("id_token").(string)
-	if !ok {
+	rawID := sess.Get("id_token").(string)
+	if rawID == "" {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, "missing id_token")
 	}
 	ver := oidcProv.Verifier(&oidc.Config{ClientID: clientID})
@@ -184,11 +195,11 @@ func ValidateGoogleTokens(c fiber.Ctx) (*TokenInfo, error) {
 
 	// 2) Check access token lifetime
 	if !token.Valid() {
-		return nil, errors.New("access token already expired/invalid")
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "no valid Google token found in session")
 	}
 
-	slog.Info("Google token validated", "email", claims.Email, "expires_in", token.Expiry)
 	c.Locals("email", claims.Email)
+	c.Locals("username", claims.Email)
 
 	return &TokenInfo{
 		Email:          claims.Email,
