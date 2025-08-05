@@ -225,8 +225,11 @@ func (u *User) Create() error {
 	if result.Error != nil {
 		return result.Error
 	}
-	if err := services.SendVerficationEmail(u.Email, u.VerificationToken, u.ID); err != nil {
-		return err
+
+	if !u.Verified {
+		if err := services.SendVerficationEmail(u.Email, u.VerificationToken, u.ID); err != nil {
+			return err
+		}
 	}
 	return nil
 }

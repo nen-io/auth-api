@@ -2,17 +2,33 @@ package middleware
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 
+	"example.com/src/services"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/session"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 func Auth(c fiber.Ctx) error {
-	slog.Info("Auth middleware")
+	sess := session.FromContext(c)
+	// Check if the provider is google
+	provider := sess.Get("provider")
+	if provider == nil {
+		provider = ""
+	}
+	provider = provider.(string)
 
-	// headers := c.GetReqHeaders()
+	if provider == "google" {
+
+		_, err := services.ValidateGoogleTokens(c)
+		if err != nil {
+			return err
+		}
+
+		return c.Next()
+
+	}
 
 	accessToken := c.Request().Header.Cookie("accessToken")
 	// slog.Info("accessToken", accessToken_c)
