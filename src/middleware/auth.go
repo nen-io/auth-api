@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 
 	"example.com/src/services"
@@ -12,8 +11,6 @@ import (
 )
 
 func Auth(c fiber.Ctx) error {
-	slog.Info("Auth middleware")
-
 	sess := session.FromContext(c)
 	// Check if the provider is google
 	provider := sess.Get("provider")

@@ -10,6 +10,8 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+
 	"github.com/joho/godotenv"
 )
 
@@ -47,6 +49,7 @@ func main() {
 
 	services.InitSessionStore(app)
 
+	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowCredentials: true,
 		AllowOrigins:     []string{uiDomain, "http://192.168.0.226:3001"},
